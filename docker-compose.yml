@@ -1,0 +1,145 @@
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      # Optional: create DB automatically (you also have init SQL)
+      MYSQL_DATABASE: ecommerce
+    command: ["--default-authentication-plugin=mysql_native_password"]
+    ports:
+      - "3306:3306"   # optional, expose if you want to connect from your laptop
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -proot -h localhost || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
+  # Eureka Registry
+  eureka:
+    build: ./eureka-server
+    container_name: eureka
+    environment:
+      SERVER_PORT: 8761
+      EUREKA_CLIENT_REGISTER_WITH_EUREKA: "false"
+      EUREKA_CLIENT_FETCH_REGISTRY: "false"
+    ports:
+      - "8761:8761"  # optional: expose dashboard
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # API Gateway (uses Eureka for discovery)
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    environment:
+      SERVER_PORT: 8080
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - eureka
+
+  # User Service
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    environment:
+      SERVER_PORT: 8081
+      SPRING_APPLICATION_NAME: user-service
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ecommerce?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+      # SPRING_JPA_HIBERNATE_DDL_AUTO: update  # optional override
+    depends_on:
+      eureka:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+
+  # Product Service
+  product-service:
+    build: ./product-service
+    container_name: product-service
+    environment:
+      SERVER_PORT: 8082
+      SPRING_APPLICATION_NAME: product-service
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ecommerce?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+    depends_on:
+      eureka:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+
+  # Inventory Service
+  inventory-service:
+    build: ./inventory-service
+    container_name: inventory-service
+    environment:
+      SERVER_PORT: 8083
+      SPRING_APPLICATION_NAME: inventory-service
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ecommerce?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+      # Optional Feign timeouts
+      FEIGN_CLIENT_CONFIG_DEFAULT_CONNECTTIMEOUT: 3000
+      FEIGN_CLIENT_CONFIG_DEFAULT_READTIMEOUT: 5000
+    depends_on:
+      eureka:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+
+  # Order Service
+  order-service:
+    build: ./order-service
+    container_name: order-service
+    environment:
+      SERVER_PORT: 8084
+      SPRING_APPLICATION_NAME: order-service
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ecommerce?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+    depends_on:
+      eureka:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+
+  # Payment Service
+  payment-service:
+    build: ./payment-service
+    container_name: payment-service
+    environment:
+      SERVER_PORT: 8085
+      SPRING_APPLICATION_NAME: payment-service
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ecommerce?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+    depends_on:
+      eureka:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+
+volumes:
+  mysql_data:

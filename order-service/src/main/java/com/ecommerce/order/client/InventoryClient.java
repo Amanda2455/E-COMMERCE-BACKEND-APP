@@ -3,6 +3,7 @@ package com.ecommerce.order.client;
 import com.ecommerce.order.dto.InventoryResponseDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -10,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface InventoryClient {
 
     @GetMapping("/api/inventory/product/{productId}")
-    InventoryResponseDTO getInventoryByProductId(@RequestParam Long productId);
+    InventoryResponseDTO getInventoryByProductId(@PathVariable Long productId);
 
     @GetMapping("/api/inventory/check-availability")
     Boolean checkStockAvailability(@RequestParam Long productId, @RequestParam Integer quantity);
