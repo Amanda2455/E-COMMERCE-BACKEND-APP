@@ -1,22 +1,3 @@
-#spring:
-#  application:
-#    name: eureka-server
-#
-#server:
-#  port: 8761
-#
-#eureka:
-#  client:
-#    register-with-eureka: false
-#    fetch-registry: false
-#    service-url:
-#      defaultZone: http://localhost:8761/eureka/
-#  server:
-#    wait-time-in-ms-when-sync-empty: 0
-#    enable-self-preservation: false
-
-#---------
-
 server:
   port: ${PORT:8761}
 
@@ -25,9 +6,13 @@ spring:
     name: eureka-server
 
 eureka:
+  instance:
+    hostname: e-commerce-backend-app-production.up.railway.app
+    prefer-ip-address: false
+
   client:
     register-with-eureka: false
     fetch-registry: false
+
   server:
-    # optional: set to true in prod to avoid self-preservation confusing UI
     enable-self-preservation: true
