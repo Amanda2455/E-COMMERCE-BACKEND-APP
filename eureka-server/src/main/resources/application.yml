@@ -1,5 +1,7 @@
 server:
   port: ${PORT:8761}
+  address: 0.0.0.0   # bind to all interfaces in PaaS
+  forward-headers-strategy: framework  # honor X-Forwarded headers from Railway
 
 spring:
   application:
