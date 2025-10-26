@@ -2,6 +2,11 @@ spring:
   application:
     name: inventory-service
 
+  datasource:
+    url: ${MYSQL_URL}
+    username: ${MYSQLUSER}
+    password: ${MYSQLPASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
@@ -20,12 +25,6 @@ springdoc:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
-
-  datasource:
-    url: ${MYSQL_URL}
-    username: ${MYSQLUSER}
-    password: ${MYSQLPASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
 
 eureka:
   client:
